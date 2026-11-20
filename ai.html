@@ -1,0 +1,446 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The AI</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #0b0d14;
+    color: white;
+    height: 100vh;
+    display: flex;
+}
+
+.sidebar {
+    width: 250px;
+    background: #11141e;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+    color: #a78bfa;
+}
+
+.new-chat {
+    background: #27243d;
+    border: 1px solid #514477;
+    padding: 13px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.new-chat:hover {
+    background: #393052;
+}
+
+.api-box {
+    margin-top: auto;
+}
+
+.api-box input {
+    width: 100%;
+    padding: 11px;
+    margin-top: 9px;
+    background: #202431;
+    border: 1px solid #34394a;
+    border-radius: 8px;
+    color: white;
+}
+
+.api-box button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 9px;
+    border: none;
+    border-radius: 8px;
+    background: #8b5cf6;
+    color: white;
+    cursor: pointer;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.header {
+    height: 65px;
+    border-bottom: 1px solid #242735;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+}
+
+.status {
+    color: #4ade80;
+    font-size: 13px;
+}
+
+.chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px 8%;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.welcome {
+    margin: auto;
+    text-align: center;
+}
+
+.welcome h1 {
+    font-size: 36px;
+    margin-bottom: 12px;
+    background: linear-gradient(90deg, #a78bfa, #60a5fa);
+    background-clip: text;
+    color: transparent;
+}
+
+.welcome p {
+    color: #9ca3af;
+}
+
+.message {
+    display: flex;
+    gap: 13px;
+    max-width: 850px;
+    width: 100%;
+    margin: 0 auto;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.avatar {
+    min-width: 35px;
+    height: 35px;
+    border-radius: 10px;
+    background: #29253f;
+    display: grid;
+    place-items: center;
+}
+
+.user .avatar {
+    background: #23416a;
+}
+
+.message-content {
+    background: #171b27;
+    padding: 13px 17px;
+    border-radius: 12px;
+    flex: 1;
+}
+
+.user .message-content {
+    background: #202b43;
+}
+
+.input-area {
+    padding: 18px 8%;
+    border-top: 1px solid #242735;
+}
+
+.input-wrapper {
+    max-width: 850px;
+    margin: auto;
+    display: flex;
+    background: #191d29;
+    border: 1px solid #373c4d;
+    border-radius: 14px;
+    padding: 8px;
+    gap: 8px;
+}
+
+.input-wrapper textarea {
+    flex: 1;
+    resize: none;
+    height: 45px;
+    max-height: 130px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 12px;
+    font-size: 15px;
+}
+
+.send {
+    width: 45px;
+    border: none;
+    border-radius: 10px;
+    background: #8b5cf6;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.send:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.footer {
+    text-align: center;
+    color: #737b8d;
+    font-size: 11px;
+    margin-top: 12px;
+}
+
+@media(max-width: 650px) {
+    .sidebar {
+        width: 65px;
+        padding: 10px;
+    }
+
+    .logo {
+        font-size: 13px;
+    }
+
+    .new-chat {
+        font-size: 0;
+    }
+
+    .new-chat::after {
+        content: "+";
+        font-size: 22px;
+    }
+
+    .api-box label,
+    .api-box input,
+    .api-box button {
+        display: none;
+    }
+
+    .chat {
+        padding: 20px 12px;
+    }
+
+    .input-area {
+        padding: 12px;
+    }
+
+    .header {
+        padding: 0 12px;
+    }
+
+    .welcome h1 {
+        font-size: 27px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="logo">✦ The AI</div>
+
+    <button class="new-chat" onclick="newChat()">
+        + New Chat
+    </button>
+
+    <div class="api-box">
+        <label for="apiKey">Gemini API Key</label>
+        <input
+            type="password"
+            id="apiKey"
+            placeholder="Paste API key..."
+            autocomplete="off"
+        >
+        <button onclick="saveKey()">Connect AI</button>
+    </div>
+</aside>
+
+<main class="main">
+
+    <header class="header">
+        <strong>The Assistant</strong>
+        <span class="status" id="status">● Not connected</span>
+    </header>
+
+    <section class="chat" id="chat">
+
+        <div class="welcome" id="welcome">
+            <h1>What can I help you with?</h1>
+            <p>Your personal AI assistant, powered by Google Gemini.</p>
+        </div>
+
+    </section>
+
+    <div class="input-area">
+        <div class="input-wrapper">
+            <textarea
+                id="prompt"
+                placeholder="Message The AI..."
+                rows="1"
+            ></textarea>
+
+            <button class="send" id="send" onclick="sendMessage()">
+                ↑
+            </button>
+        </div>
+
+        <div class="footer">
+            The AI can make mistakes. Always verify important information.
+        </div>
+    </div>
+
+</main>
+
+<script type="module">
+
+import { GoogleGenAI } from
+"https://esm.sh/@google/genai";
+
+let ai = null;
+let previousId = null;
+let loading = false;
+
+const chat = document.getElementById("chat");
+const prompt = document.getElementById("prompt");
+const send = document.getElementById("send");
+const status = document.getElementById("status");
+
+window.saveKey = function() {
+
+    const key = document.getElementById("apiKey").value.trim();
+
+    if (!key) {
+        alert("Please enter your Gemini API key.");
+        return;
+    }
+
+    ai = new GoogleGenAI({ apiKey: key });
+
+    status.textContent = "● Connected";
+    status.style.color = "#4ade80";
+
+    alert("Gemini API connected!");
+};
+
+function addMessage(text, type) {
+
+    document.getElementById("welcome")?.remove();
+
+    const message = document.createElement("div");
+    message.className = `message ${type}`;
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = type === "user" ? "👤" : "✦";
+
+    const content = document.createElement("div");
+    content.className = "message-content";
+    content.textContent = text;
+
+    message.appendChild(avatar);
+    message.appendChild(content);
+
+    chat.appendChild(message);
+    chat.scrollTop = chat.scrollHeight;
+
+    return content;
+}
+
+window.sendMessage = async function() {
+
+    const text = prompt.value.trim();
+
+    if (!text || loading) return;
+
+    if (!ai) {
+        alert("Please connect your Gemini API key first.");
+        return;
+    }
+
+    loading = true;
+    send.disabled = true;
+
+    prompt.value = "";
+
+    addMessage(text, "user");
+
+    const responseBox = addMessage("Thinking...", "bot");
+
+    try {
+
+        const options = {
+            model: "gemini-3.8-flash",
+            input: text
+        };
+
+        if (previousId) {
+            options.previous_interaction_id = previousId;
+        }
+
+        const response = await ai.interactions.create(options);
+
+        previousId = response.id;
+
+        responseBox.textContent =
+            response.output_text || "I couldn't generate a response.";
+
+    } catch (error) {
+
+        responseBox.textContent =
+            "Sorry, something went wrong: " + error.message;
+
+        console.error(error);
+
+    } finally {
+
+        loading = false;
+        send.disabled = false;
+        prompt.focus();
+
+        chat.scrollTop = chat.scrollHeight;
+    }
+};
+
+window.newChat = function() {
+
+    previousId = null;
+    chat.innerHTML = `
+        <div class="welcome" id="welcome">
+            <h1>What can I help you with?</h1>
+            <p>Your personal AI assistant, powered by Google Gemini.</p>
+        </div>
+    `;
+
+};
+
+prompt.addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+
+});
+
+</script>
+
+</body>
+</html>
